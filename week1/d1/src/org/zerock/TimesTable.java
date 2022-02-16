@@ -10,5 +10,6 @@ public class TimesTable {
             }
             System.out.println();
         }
+        System.out.println("구구단을 외웠다");
     }
 }

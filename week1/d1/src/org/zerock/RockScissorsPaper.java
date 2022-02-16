@@ -9,66 +9,88 @@ public class RockScissorsPaper {
         Scanner scanner = new Scanner(System.in);
         Random random = new Random();
 
-        int userPoint = 0;
-        int comPoint = 0;
+        Player user = new Player();
+        Player com = new Player();
+
         int round = 1;
 
-        while (userPoint < 3 && comPoint < 3) {
+        while (user.getScore() < 3 && com.getScore() < 3) {
             // 현재 라운드, 점수 표시
             System.out.printf("Round: %d\n", round);
-            System.out.printf("You %d : %d Computer\n", userPoint, comPoint);
+            System.out.printf("You %d : %d Computer\n", user.getScore(), com.getScore());
 
             // 유저 선택
             System.out.print("가위:0 바위:1 보:2 => ");
-            int user = Integer.parseInt(scanner.nextLine());
-            if (user < 0 || user > 2) {
+            int userInput = Integer.parseInt(scanner.nextLine());
+            if (userInput < 0 || userInput > 2) {
                 System.out.println("Invalid input: you should input 0, 1 or 2\n");
                 continue;
             }
-            System.out.println("USER: " + Cases.indexToString(user));
+            user.setState(userInput);
 
             // 컴퓨터 선택(랜덤)
-            int com = random.nextInt(3); // 0,1,2 중 랜덤 선택
-            System.out.println("COM: " + Cases.indexToString(com));
+            com.setState(random.nextInt(3)); // 0,1,2 중 랜덤 선택
+
+            System.out.println("USER: " + user.getStateName());
+            System.out.println("COM: " + com.getStateName());
 
             /* 승패 판정 */
-            if (user < com) { // 일반화 시키기 위해 항상 user >= com 인 상태로 조정
-                user = user + 3;
-            }
-            if (user - com == 1) { // 사용자 승리
-                System.out.println("당신이 이겼습니다!\n");
-                userPoint++;
-            } else if (user - com == 2) { // 컴퓨터 승리
-                System.out.println("컴퓨터가 이겼습니다!\n");
-                comPoint++;
-            } else { // 무승부
-                System.out.println("Tie! Rematch!\n");
-                continue; // 무승부시 round++ 을 피하기 위해서
+            int result = user.judge(com);
+            switch (result) {
+                case 1:
+                    user.win();
+                    System.out.println("당신이 이겼습니다.\n");
+                    break;
+                case 0:
+                    System.out.println("비겼습니다. 재경기를 시작합니다.\n");
+                    continue;
+                case -1:
+                    com.win();
+                    System.out.println("컴퓨터가 이겼습니다.\n");
+                    break;
             }
 
             round++;
         }
-        System.out.printf("%s 먼저 세판을 승리해 최종 승리자가 되었습니다!", userPoint > comPoint ? "당신이" : "컴퓨터가");
+        System.out.printf("You %d : %d Computer\n", user.getScore(), com.getScore());
+        System.out.printf("%s 먼저 세판을 승리해 최종 승리자가 되었습니다!", user.getScore() > com.getScore() ? "당신이" : "컴퓨터가");
     }
 }
 
-enum Cases {
-    SCISSORS(0, "가위"),
-    ROCK(1, "바위"),
-    PAPER(2, "보");
+class Player {
 
-    final int index;
-    final String korean;
+    private int state;
+    private String stateName;
+    private int score;
 
-    Cases(int index, String korean) {
-        this.index = index;
-        this.korean = korean;
+    public int getState() { return state; }
+
+    public String getStateName() { return stateName; }
+
+    public int getScore() { return score; }
+
+    public void win() {
+        score++;
     }
 
-    static String indexToString(int index) {
-        for (Cases cases : Cases.values()) {
-            if (cases.index % 3 == index) return cases.korean;
+    public void setState(int state) {
+        this.state = state;
+        switch (state) {
+            case 0:
+                stateName = "가위";
+                break;
+            case 1:
+                stateName = "바위";
+                break;
+            case 2:
+                stateName = "보";
+                break;
         }
-        return "Cases.indexToString: given index not found";
+    }
+
+    public int judge(Player op) {
+        int gap = state - op.getState();
+        gap = gap < 0 ? gap + 3 : gap;
+        return gap == 1 ? 1 : gap == 2 ? -1 : 0;
     }
 }
